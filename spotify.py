@@ -29,7 +29,6 @@ Make sure to add 'http://localhost:8888/callback' (or your chosen URI) in your a
 
 auth_info = oauth_info()
 
-# Set up the authentication
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=auth_info["client_id"],
                                                client_secret=auth_info["client_secret"],
                                                redirect_uri=auth_info["redirect_uri"],
@@ -85,12 +84,22 @@ def main():
     playlist_name, playlist_id = choose_playlist()
     if playlist_id:
         all_songs_with_genre = fetch_info(playlist_id)
-        songs_data = [{"track_name": track_name, "artist_name": artist_name, "genre": genre} for track_name, artist_name, genre in all_songs_with_genre]
-        safe_playlist_name = playlist_name.replace(' ', '_').replace('\'', '')
-        filename = f"{safe_playlist_name}_songs.json"
-        with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(songs_data, f, ensure_ascii=False, indent=4)
-        print(f"Data has been written to {filename}")
+        output_option = input("Do you want to output only the artist names? (yes/no): ").strip().lower()
+        if output_option == 'yes':
+            unique_artists = {artist_name for _, artist_name, _ in all_songs_with_genre}
+            artists_data = [{"artist_name": artist_name} for artist_name in unique_artists]
+            safe_playlist_name = playlist_name.replace(' ', '_').replace('\'', '')
+            filename = f"{safe_playlist_name}_artists.json"
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(artists_data, f, ensure_ascii=False, indent=4)
+            print(f"Artist data has been written to {filename}")
+        else:
+            songs_data = [{"track_name": track_name, "artist_name": artist_name, "genre": genre} for track_name, artist_name, genre in all_songs_with_genre]
+            safe_playlist_name = playlist_name.replace(' ', '_').replace('\'', '')
+            filename = f"{safe_playlist_name}_songs.json"
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(songs_data, f, ensure_ascii=False, indent=4)
+            print(f"Data has been written to {filename}")
     else:
         print("Operation cancelled or no playlist selected.")
 
